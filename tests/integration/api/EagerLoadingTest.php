@@ -16,6 +16,7 @@ use Flarum\Api\Controller\ShowDiscussionController;
 use Flarum\Extend;
 use FoF\Bookmarks\Tests\integration\TestCase;
 use Illuminate\Support\Collection;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * The post `bookmarked` attribute reads an eager-loaded relationship, so that a listing
@@ -27,9 +28,7 @@ use Illuminate\Support\Collection;
  */
 class EagerLoadingTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function post_listing_eager_loads_bookmark_state(): void
     {
         /** @var Collection|null $posts */
@@ -68,8 +67,8 @@ class EagerLoadingTest extends TestCase
      * The relationship must be loaded even when the client does not ask for it via
      * `include`, because the serializer reads it unconditionally.
      *
-     * @test
      */
+    #[Test]
     public function bookmark_state_is_loaded_without_an_explicit_include(): void
     {
         /** @var Collection|null $posts */
@@ -100,8 +99,8 @@ class EagerLoadingTest extends TestCase
      * A discussion page serializes its posts through the same attribute, so the nested
      * relationship has to be loaded there too.
      *
-     * @test
      */
+    #[Test]
     public function discussion_page_eager_loads_bookmark_state_on_posts(): void
     {
         $discussion = null;
@@ -136,8 +135,8 @@ class EagerLoadingTest extends TestCase
      * The eager-loaded relationship is constrained to the actor, so a bookmark belonging
      * to someone else must not be present on the loaded relation at all.
      *
-     * @test
      */
+    #[Test]
     public function eager_loaded_state_is_scoped_to_the_actor(): void
     {
         /** @var Collection|null $posts */

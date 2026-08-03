@@ -12,6 +12,7 @@
 namespace FoF\Bookmarks\Tests\integration\api;
 
 use FoF\Bookmarks\Tests\integration\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Finding bookmarks: the `is:bookmarked` discussion gambit and the `bookmarked` post
@@ -29,9 +30,7 @@ class FilteringTest extends TestCase
         }, $this->json($response)['data']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bookmarked_gambit_returns_only_bookmarked_discussions(): void
     {
         $this->bookmarkDiscussion(2, 2);
@@ -45,9 +44,7 @@ class FilteringTest extends TestCase
         $this->assertEquals(['2'], $this->ids($response));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bookmarked_gambit_can_be_negated(): void
     {
         $this->bookmarkDiscussion(2, 2);
@@ -63,8 +60,8 @@ class FilteringTest extends TestCase
     /**
      * A state row exists but was never bookmarked, so the gambit must not match it.
      *
-     * @test
      */
+    #[Test]
     public function bookmarked_gambit_ignores_null_timestamps(): void
     {
         $this->bookmarkDiscussion(1, 2, null);
@@ -78,9 +75,7 @@ class FilteringTest extends TestCase
         $this->assertEquals(['2'], $this->ids($response));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bookmarked_gambit_is_scoped_to_the_actor(): void
     {
         $this->bookmarkDiscussion(1, 2);
@@ -94,9 +89,7 @@ class FilteringTest extends TestCase
         $this->assertEquals(['1'], $this->ids($response));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bookmarked_gambit_returns_nothing_for_a_guest(): void
     {
         $this->bookmarkDiscussion(1, 2);
@@ -109,9 +102,7 @@ class FilteringTest extends TestCase
         $this->assertEquals([], $this->ids($response));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bookmarked_filter_returns_only_bookmarked_posts(): void
     {
         $this->bookmarkPost(1, 2);
@@ -126,9 +117,7 @@ class FilteringTest extends TestCase
         $this->assertEqualsCanonicalizing(['1', '4'], $this->ids($response));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bookmarked_post_filter_is_scoped_to_the_actor(): void
     {
         $this->bookmarkPost(1, 2);
@@ -142,9 +131,7 @@ class FilteringTest extends TestCase
         $this->assertEquals(['1'], $this->ids($response));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bookmarked_post_filter_can_be_negated(): void
     {
         $this->bookmarkPost(1, 2);
@@ -158,9 +145,7 @@ class FilteringTest extends TestCase
         $this->assertContains('2', $this->ids($response));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bookmarked_post_filter_returns_nothing_for_a_guest(): void
     {
         $this->bookmarkPost(1, 2);
@@ -177,8 +162,8 @@ class FilteringTest extends TestCase
      * The frontend sends the flag as the string '1' rather than a boolean, because core
      * types filter values as strings. The backend must treat it the same way.
      *
-     * @test
      */
+    #[Test]
     public function bookmarked_post_filter_accepts_a_string_flag(): void
     {
         $this->bookmarkPost(1, 2);
@@ -200,8 +185,8 @@ class FilteringTest extends TestCase
      * via `addInclude()` — leaving them to render against relationships that were never
      * loaded.
      *
-     * @test
      */
+    #[Test]
     public function post_listing_returns_the_controller_default_relationships(): void
     {
         $this->bookmarkPost(1, 2);

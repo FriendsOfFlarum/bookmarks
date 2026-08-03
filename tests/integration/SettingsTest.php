@@ -13,6 +13,7 @@ namespace FoF\Bookmarks\Tests\integration;
 
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase as BaseTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Settings must reach the forum payload with a usable value before an admin has ever
@@ -42,9 +43,7 @@ class SettingsTest extends BaseTestCase
         return json_decode($body->getContents(), true)['data']['attributes'];
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function discussion_button_defaults_to_the_sidebar(): void
     {
         $attributes = $this->forumAttributes();
@@ -57,8 +56,8 @@ class SettingsTest extends BaseTestCase
      * Without a default this serializes as null, leaving the admin dropdown blank and
      * forcing the frontend to invent a fallback.
      *
-     * @test
      */
+    #[Test]
     public function post_button_position_defaults_to_the_header(): void
     {
         $attributes = $this->forumAttributes();
@@ -67,9 +66,7 @@ class SettingsTest extends BaseTestCase
         $this->assertSame('header', $attributes['fof-bookmarks.postButtonPosition']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function post_header_badge_defaults_to_off(): void
     {
         $attributes = $this->forumAttributes();
@@ -78,9 +75,7 @@ class SettingsTest extends BaseTestCase
         $this->assertFalse($attributes['fof-bookmarks.postHeaderBadge']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function settings_are_overridable(): void
     {
         $this->setting('fof-bookmarks.independentButton', '0');

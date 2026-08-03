@@ -13,6 +13,7 @@ namespace FoF\Bookmarks\Tests\integration;
 
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase as BaseTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * The schema this extension expects, and the upgrade path from the extensions it
@@ -44,9 +45,7 @@ class MigrationTest extends BaseTestCase
         return $this->database()->getTablePrefix().$table;
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function discussion_user_has_a_nullable_bookmarked_at_column(): void
     {
         $schema = $this->database()->getSchemaBuilder();
@@ -65,8 +64,8 @@ class MigrationTest extends BaseTestCase
      * The gambit filters on this column for every bookmarks page view, so the index
      * matters.
      *
-     * @test
      */
+    #[Test]
     public function bookmarked_at_is_indexed(): void
     {
         $indexes = $this->database()
@@ -84,9 +83,7 @@ class MigrationTest extends BaseTestCase
         $this->assertTrue($indexed, 'bookmarked_at should be indexed');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function post_user_bookmark_table_has_the_expected_shape(): void
     {
         $schema = $this->database()->getSchemaBuilder();
@@ -107,8 +104,8 @@ class MigrationTest extends BaseTestCase
      * `belongsToMany()` extender instead of a closure calling `withTimestamps()`, so the
      * default is load-bearing rather than a convenience.
      *
-     * @test
      */
+    #[Test]
     public function post_user_bookmark_created_at_defaults_to_the_current_timestamp(): void
     {
         $column = $this->database()
@@ -123,8 +120,8 @@ class MigrationTest extends BaseTestCase
      * The pivot is keyed on both columns, which is what makes a repeated bookmark a
      * no-op rather than a duplicate row.
      *
-     * @test
      */
+    #[Test]
     public function post_user_bookmark_is_keyed_on_both_columns(): void
     {
         $primary = $this->database()
@@ -140,8 +137,8 @@ class MigrationTest extends BaseTestCase
      * Deleting a post or user must take the pivot rows with it rather than leaving
      * orphans behind.
      *
-     * @test
      */
+    #[Test]
     public function post_user_bookmark_cascades_on_delete(): void
     {
         $foreignKeys = $this->database()
@@ -164,8 +161,8 @@ class MigrationTest extends BaseTestCase
      * created by one of the extensions this one replaces. Both `down` handlers are
      * deliberately no-ops.
      *
-     * @test
      */
+    #[Test]
     public function rolling_back_preserves_existing_data(): void
     {
         $this->database()->table('users')->insert($this->normalUser());
