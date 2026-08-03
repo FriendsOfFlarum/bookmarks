@@ -12,15 +12,14 @@
 namespace FoF\Bookmarks\Tests\integration\api\discussions;
 
 use FoF\Bookmarks\Tests\integration\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Reading and writing the `bookmarked` attribute on discussions.
  */
 class BookmarkTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function discussion_is_not_bookmarked_by_default(): void
     {
         $response = $this->send(
@@ -31,9 +30,7 @@ class BookmarkTest extends TestCase
         $this->assertFalse($this->json($response)['data']['attributes']['bookmarked']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function existing_bookmark_is_reported_as_bookmarked(): void
     {
         $this->bookmarkDiscussion(1, 2);
@@ -49,8 +46,8 @@ class BookmarkTest extends TestCase
      * A state row with a null `bookmarked_at` is the "read but never bookmarked" case,
      * which must not be reported as a bookmark.
      *
-     * @test
      */
+    #[Test]
     public function state_row_without_timestamp_is_not_bookmarked(): void
     {
         $this->bookmarkDiscussion(1, 2, null);
@@ -62,9 +59,7 @@ class BookmarkTest extends TestCase
         $this->assertFalse($this->json($response)['data']['attributes']['bookmarked']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function bookmarks_are_per_user(): void
     {
         $this->bookmarkDiscussion(1, 2);
@@ -76,9 +71,7 @@ class BookmarkTest extends TestCase
         $this->assertFalse($this->json($response)['data']['attributes']['bookmarked']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function guest_never_sees_a_bookmark(): void
     {
         $this->bookmarkDiscussion(1, 2);
@@ -90,9 +83,7 @@ class BookmarkTest extends TestCase
         $this->assertFalse($this->json($response)['data']['attributes']['bookmarked']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function user_can_bookmark_a_discussion(): void
     {
         $response = $this->send(
@@ -112,9 +103,7 @@ class BookmarkTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function user_can_remove_a_bookmark(): void
     {
         $this->bookmarkDiscussion(1, 2);
@@ -139,8 +128,8 @@ class BookmarkTest extends TestCase
     /**
      * Bookmarking must not disturb the other state this row carries for core.
      *
-     * @test
      */
+    #[Test]
     public function bookmarking_preserves_read_state(): void
     {
         $this->database()->table('discussion_user')->insert([
@@ -170,8 +159,8 @@ class BookmarkTest extends TestCase
      * is rejected by middleware, which would pass this test without proving anything
      * about who is allowed to bookmark.
      *
-     * @test
      */
+    #[Test]
     public function guest_cannot_bookmark(): void
     {
         $response = $this->send(
@@ -193,8 +182,8 @@ class BookmarkTest extends TestCase
     /**
      * A request that does not mention `bookmarked` must leave an existing bookmark alone.
      *
-     * @test
      */
+    #[Test]
     public function unrelated_update_does_not_clear_the_bookmark(): void
     {
         $this->bookmarkDiscussion(1, 2);

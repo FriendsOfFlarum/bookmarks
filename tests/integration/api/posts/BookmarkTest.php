@@ -12,15 +12,14 @@
 namespace FoF\Bookmarks\Tests\integration\api\posts;
 
 use FoF\Bookmarks\Tests\integration\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Reading and writing the `bookmarked` attribute on posts.
  */
 class BookmarkTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function post_is_not_bookmarked_by_default(): void
     {
         $response = $this->send(
@@ -31,9 +30,7 @@ class BookmarkTest extends TestCase
         $this->assertFalse($this->json($response)['data']['attributes']['bookmarked']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function existing_bookmark_is_reported_as_bookmarked(): void
     {
         $this->bookmarkPost(1, 2);
@@ -49,8 +46,8 @@ class BookmarkTest extends TestCase
      * The bookmark relationship is per-user, so another user's bookmark must never be
      * reported as the actor's own.
      *
-     * @test
      */
+    #[Test]
     public function bookmarks_are_per_user(): void
     {
         $this->bookmarkPost(1, 2);
@@ -62,9 +59,7 @@ class BookmarkTest extends TestCase
         $this->assertFalse($this->json($response)['data']['attributes']['bookmarked']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function guest_never_sees_a_bookmark(): void
     {
         $this->bookmarkPost(1, 2);
@@ -79,8 +74,8 @@ class BookmarkTest extends TestCase
     /**
      * Every post in a listing must report the actor's own state, not the first row's.
      *
-     * @test
      */
+    #[Test]
     public function listing_reports_state_per_post(): void
     {
         $this->bookmarkPost(2, 2);
@@ -103,8 +98,8 @@ class BookmarkTest extends TestCase
     /**
      * The same listing seen by a user with no bookmarks at all.
      *
-     * @test
      */
+    #[Test]
     public function listing_reports_no_state_for_another_user(): void
     {
         $this->bookmarkPost(1, 2);
@@ -120,9 +115,7 @@ class BookmarkTest extends TestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function user_can_bookmark_a_post(): void
     {
         $response = $this->send(
@@ -139,9 +132,7 @@ class BookmarkTest extends TestCase
             ->where('post_id', 1)->where('user_id', 2)->count());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function user_can_remove_a_bookmark(): void
     {
         $this->bookmarkPost(1, 2);
@@ -163,8 +154,8 @@ class BookmarkTest extends TestCase
     /**
      * Bookmarking twice must not fail on the pivot's composite primary key.
      *
-     * @test
      */
+    #[Test]
     public function bookmarking_twice_is_idempotent(): void
     {
         $this->bookmarkPost(1, 2);
@@ -181,9 +172,7 @@ class BookmarkTest extends TestCase
             ->where('post_id', 1)->where('user_id', 2)->count());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function removing_a_bookmark_that_does_not_exist_is_harmless(): void
     {
         $response = $this->send(
@@ -200,8 +189,8 @@ class BookmarkTest extends TestCase
     /**
      * Removing a bookmark must only affect the actor's own row.
      *
-     * @test
      */
+    #[Test]
     public function removing_a_bookmark_leaves_other_users_alone(): void
     {
         $this->bookmarkPost(1, 2);
@@ -225,8 +214,8 @@ class BookmarkTest extends TestCase
      * filled by the database default, as core's `post_likes` table does. If that default
      * were ever lost the insert would fail outright.
      *
-     * @test
      */
+    #[Test]
     public function bookmarking_records_when_the_bookmark_was_made(): void
     {
         $this->send(
@@ -243,9 +232,7 @@ class BookmarkTest extends TestCase
         $this->assertNotSame('0000-00-00 00:00:00', $row->created_at);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function guest_cannot_bookmark(): void
     {
         $response = $this->send(
@@ -263,8 +250,8 @@ class BookmarkTest extends TestCase
     /**
      * A request that does not mention `bookmarked` must leave an existing bookmark alone.
      *
-     * @test
      */
+    #[Test]
     public function unrelated_update_does_not_clear_the_bookmark(): void
     {
         $this->bookmarkPost(1, 2);
@@ -283,8 +270,8 @@ class BookmarkTest extends TestCase
     /**
      * Deleting a post must take its bookmarks with it, via the pivot's cascade.
      *
-     * @test
      */
+    #[Test]
     public function deleting_a_post_removes_its_bookmarks(): void
     {
         $this->bookmarkPost(2, 2);

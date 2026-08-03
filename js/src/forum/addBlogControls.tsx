@@ -7,26 +7,17 @@ import BookmarkButton from './components/BookmarkButton';
  * fof/blog's article page does not reuse Flarum's discussion sidebar, so the bookmark
  * control has to be added to its own content list.
  *
- * The import below is type-only, so this file adds no runtime dependency on fof/blog:
- * the class is looked up through the compat registry and the extension bails out when
- * blog is not installed.
+ * The target is given to `extend()` as an `ext:` module path rather than a class. That
+ * defers the extension through `flarum.reg.onLoad()`, so it is applied if and when
+ * fof/blog loads and is simply never applied when blog is not installed — which is what
+ * keeps blog an optional dependency without a runtime import.
  */
-type BlogItem = typeof import('@fof/blog/forum/pages/BlogItem').default;
-
-const COMPAT_KEY = 'fof/blog/pages/BlogItem';
-
 export default function addBlogControls(): void {
-  const registry = flarum.core.compat as Record<string, unknown>;
-
-  if (!(COMPAT_KEY in registry)) return;
-
-  const BlogItemPage = registry[COMPAT_KEY] as BlogItem;
-
-  extend(BlogItemPage.prototype, 'contentItems', function (items) {
+  extend('ext:fof/blog/forum/pages/BlogItem', 'contentItems', function (this: any, items: any) {
     if (!app.session.user) return;
 
     // `article` is protected on BlogItem, but this runs as an extension of the class.
-    const article = (this as unknown as { article: Discussion | null }).article;
+    const article = this.article as Discussion | null;
 
     if (!article) return;
 

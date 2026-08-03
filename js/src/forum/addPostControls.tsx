@@ -1,5 +1,5 @@
 import { extend } from 'flarum/common/extend';
-import icon from 'flarum/common/helpers/icon';
+import Icon from 'flarum/common/components/Icon';
 import type Post from 'flarum/common/models/Post';
 import app from 'flarum/forum/app';
 import CommentPost from 'flarum/forum/components/CommentPost';
@@ -35,7 +35,7 @@ export default function addPostControls(): void {
       items.add(
         'bookmark',
         <span className="BookmarkedPostLabel">
-          {icon('fas fa-bookmark')} {app.translator.trans('fof-bookmarks.forum.badge')}
+          <Icon name="fas fa-bookmark" /> {app.translator.trans('fof-bookmarks.forum.badge')}
         </span>
       );
     }

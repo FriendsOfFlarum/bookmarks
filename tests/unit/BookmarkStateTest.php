@@ -13,6 +13,7 @@ namespace FoF\Bookmarks\Tests\unit;
 
 use Flarum\Testing\unit\TestCase;
 use FoF\Bookmarks\BookmarkState;
+use PHPUnit\Framework\Attributes\Test;
 
 class BookmarkStateTest extends TestCase
 {
@@ -20,8 +21,8 @@ class BookmarkStateTest extends TestCase
      * The model exists purely to eager-load rows of the pivot table, so the table name
      * is the whole of its contract.
      *
-     * @test
      */
+    #[Test]
     public function bookmark_state_uses_the_pivot_table(): void
     {
         $this->assertSame('post_user_bookmark', (new BookmarkState())->getTable());

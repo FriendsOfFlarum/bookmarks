@@ -11,27 +11,28 @@
 
 namespace FoF\Bookmarks;
 
-use Flarum\Http\RequestUtil;
+use Flarum\Api\Context;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Database\Query\Builder;
-use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Constrains an eager-loaded `bookmarkState` relationship to the requesting actor.
  *
  * A post's bookmark state is per-user, but the relationship itself is defined on the
- * post. `Extend\ApiController::loadWhere()` hands its callback the request, which is
- * what allows the constraint to be applied at eager-load time — one query for the
- * whole page, and no global state to hold the actor.
+ * post. `Endpoint::eagerLoadWhere()` hands its callback the API context, which is what
+ * allows the constraint to be applied at eager-load time — one query for the whole
+ * page, and no global state to hold the actor.
+ *
+ * @param Relation<\Illuminate\Database\Eloquent\Model, \Illuminate\Database\Eloquent\Model, mixed>|Builder<\Illuminate\Database\Eloquent\Model> $query
  */
 class ScopeBookmarkState
 {
     /**
-     * @param Relation|Builder $query
+     * @param Relation<\Illuminate\Database\Eloquent\Model, \Illuminate\Database\Eloquent\Model, mixed>|Builder<\Illuminate\Database\Eloquent\Model> $query
      */
-    public function __invoke($query, ?ServerRequestInterface $request = null): void
+    public function __invoke($query, ?Context $context = null): void
     {
-        $actor = $request ? RequestUtil::getActor($request) : null;
+        $actor = $context?->getActor();
 
         // Guests never have bookmarks. Matching on a null user_id keeps the relationship
         // empty for them rather than leaking whichever rows happen to exist.

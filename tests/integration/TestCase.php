@@ -14,6 +14,9 @@ namespace FoF\Bookmarks\Tests\integration;
 use Carbon\Carbon;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase as BaseTestCase;
+use Flarum\User\User;
+use Flarum\Discussion\Discussion;
+use Flarum\Post\Post;
 
 /**
  * Shared fixtures for the bookmark tests.
@@ -34,7 +37,7 @@ abstract class TestCase extends BaseTestCase
         $this->extension('fof-bookmarks');
 
         $this->prepareDatabase([
-            'users' => [
+            User::class => [
                 $this->normalUser(),
                 [
                     'id'                 => 3,
@@ -44,11 +47,11 @@ abstract class TestCase extends BaseTestCase
                     'is_email_confirmed' => 1,
                 ],
             ],
-            'discussions' => [
+            Discussion::class => [
                 ['id' => 1, 'title' => 'First discussion', 'created_at' => Carbon::now(), 'last_posted_at' => Carbon::now(), 'user_id' => 2, 'first_post_id' => 1, 'last_post_id' => 2, 'last_post_number' => 2, 'comment_count' => 2],
                 ['id' => 2, 'title' => 'Second discussion', 'created_at' => Carbon::now(), 'last_posted_at' => Carbon::now(), 'user_id' => 2, 'first_post_id' => 3, 'last_post_id' => 4, 'last_post_number' => 2, 'comment_count' => 2],
             ],
-            'posts' => [
+            Post::class => [
                 ['id' => 1, 'number' => 1, 'discussion_id' => 1, 'created_at' => Carbon::now(), 'user_id' => 2, 'type' => 'comment', 'content' => '<t><p>First discussion, first post.</p></t>'],
                 ['id' => 2, 'number' => 2, 'discussion_id' => 1, 'created_at' => Carbon::now(), 'user_id' => 2, 'type' => 'comment', 'content' => '<t><p>First discussion, second post.</p></t>'],
                 ['id' => 3, 'number' => 1, 'discussion_id' => 2, 'created_at' => Carbon::now(), 'user_id' => 2, 'type' => 'comment', 'content' => '<t><p>Second discussion, first post.</p></t>'],

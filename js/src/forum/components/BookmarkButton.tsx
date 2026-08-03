@@ -2,8 +2,10 @@ import Button from 'flarum/common/components/Button';
 import Component from 'flarum/common/Component';
 import type Discussion from 'flarum/common/models/Discussion';
 import type Post from 'flarum/common/models/Post';
+import Icon from 'flarum/common/components/Icon';
 import app from 'flarum/forum/app';
 import type Mithril from 'mithril';
+import classList from 'flarum/common/utils/classList';
 
 export interface BookmarkButtonAttrs {
   /**
@@ -37,8 +39,8 @@ export default class BookmarkButton extends Component<BookmarkButtonAttrs> {
 
     return (
       <Button
-        className={`${className ?? ''}${bookmarked ? ' Button--bookmarked' : ''}`}
-        icon={bookmarked ? 'fas fa-bookmark' : 'far fa-bookmark'}
+        className={classList(className, { 'Button Button--bookmarked': bookmarked })}
+        icon={<Icon name={bookmarked ? 'fas fa-bookmark' : 'far fa-bookmark'} className="Button-icon" noStyleOverride />}
         loading={this.saving}
         onclick={() => this.toggle()}
       >
