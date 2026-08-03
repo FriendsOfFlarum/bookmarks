@@ -39,7 +39,12 @@ export default class BookmarkButton extends Component<BookmarkButtonAttrs> {
 
     return (
       <Button
-        className={classList(className, { 'Button Button--bookmarked': bookmarked })}
+        // Only the modifier is conditional. `Button` itself is left to the caller: core's
+        // Button deliberately applies no class of its own, because a dropdown item must
+        // *not* have it — adding it there stacks button padding on top of the menu item's
+        // own and indents the row. Folding `Button` in here would also mean the class
+        // appeared only once bookmarked, shifting the row on toggle.
+        className={classList(className, { 'Button--bookmarked': bookmarked })}
         icon={<Icon name={bookmarked ? 'fas fa-bookmark' : 'far fa-bookmark'} className="Button-icon" noStyleOverride />}
         loading={this.saving}
         onclick={() => this.toggle()}

@@ -50,6 +50,8 @@ export default function addPostControls(): void {
   extend(PostControls, 'userControls', function (items, post: Post) {
     if (!app.session.user || buttonPosition() !== 'menu') return;
 
-    items.add('bookmark', <BookmarkButton subject={post} labels="postButton" className="Button" alert />);
+    // No `className`: dropdown items are styled by the menu, and core's own PostControls
+    // entries (Edit, Flag, Delete) pass none either. Adding `Button` here indents the row.
+    items.add('bookmark', <BookmarkButton subject={post} labels="postButton" alert />);
   });
 }
