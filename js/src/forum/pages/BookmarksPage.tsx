@@ -1,3 +1,4 @@
+import IndexSidebar from 'flarum/forum/components/IndexSidebar';
 import Button from 'flarum/common/components/Button';
 import Link from 'flarum/common/components/Link';
 import LinkButton from 'flarum/common/components/LinkButton';
@@ -70,7 +71,7 @@ export default class BookmarksPage extends Page {
         <div className="container">
           <div className="sideNavContainer">
             <nav className="IndexPage-nav sideNav">
-              <ul>{listItems(IndexPage.prototype.sidebarItems().toArray())}</ul>
+              <ul>{listItems(IndexSidebar.prototype.items().toArray())}</ul>
             </nav>
             <div className="IndexPage-results sideNavOffset">
               <div className="IndexPage-toolbar">

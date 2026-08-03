@@ -1,7 +1,7 @@
 import app from 'flarum/admin/app';
 
 app.initializers.add('fof-bookmarks', () => {
-  app.extensionData
+  app.registry
     .for('fof-bookmarks')
     .registerSetting({
       setting: 'fof-bookmarks.independentButton',
