@@ -8,7 +8,6 @@
     "type": "flarum-extension",
     "license": "MIT",
     "require": {
-        "php": "^8.3",
         "flarum/core": "^2.0.0"
     },
     "authors": [
@@ -56,7 +55,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-1.x": "1.x-dev"
+            "dev-2.x": "2.x-dev"
         },
         "flarum-extension": {
             "title": "FoF Bookmarks",
@@ -93,8 +92,10 @@
     "prefer-stable": true,
     "require-dev": {
         "flarum/phpstan": "^2.0.0",
-        "flarum/testing": "^2.0.0",
-        "fof/blog": "^1.0"
+        "flarum/testing": "2.x-dev",
+        "flarum/lock": "^2.0.0",
+        "flarum/tags": "^2.0.0",
+        "fof/blog": "^2.0"
     },
     "scripts": {
         "analyse:phpstan": "phpstan analyse",

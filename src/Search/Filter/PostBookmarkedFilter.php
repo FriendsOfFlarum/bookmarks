@@ -9,13 +9,22 @@
  * file that was distributed with this source code.
  */
 
-namespace FoF\Bookmarks\Filter;
+namespace FoF\Bookmarks\Search\Filter;
 
+use Flarum\Search\Database\DatabaseSearchState;
 use Flarum\Search\Filter\FilterInterface;
 use Flarum\Search\SearchState;
 use Illuminate\Database\Query\Builder;
 
-class BookmarkedFilter implements FilterInterface
+/**
+ * Restricts a post listing to the actor's bookmarked posts.
+ *
+ * Post bookmarks have no core-provided state row, so they live in this extension's own
+ * `post_user_bookmark` pivot table.
+ *
+ * @implements FilterInterface<DatabaseSearchState>
+ */
+class PostBookmarkedFilter implements FilterInterface
 {
     public function getFilterKey(): string
     {

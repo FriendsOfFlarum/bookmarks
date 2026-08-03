@@ -36,13 +36,26 @@ class MigrationTest extends BaseTestCase
     }
 
     /**
-     * Doctrine's schema manager works with real table names, so the connection's prefix
-     * has to be applied by hand. Laravel's own schema builder does this itself, which is
-     * why only the Doctrine calls need it.
+     * Find a column in the schema builder's description of a table.
+     *
+     * doctrine/dbal is no longer a Laravel dependency, so schema introspection goes
+     * through the schema builder's own `getColumns()`/`getIndexes()`/`getForeignKeys()`.
+     * Those are implemented per driver, which is what makes these assertions hold on
+     * MySQL, PostgreSQL and SQLite alike.
+     *
+     * @return array<string, mixed>
      */
-    private function prefixed(string $table): string
+    private function column(string $table, string $name): array
     {
-        return $this->database()->getTablePrefix().$table;
+        $columns = $this->database()->getSchemaBuilder()->getColumns($table);
+
+        foreach ($columns as $column) {
+            if ($column['name'] === $name) {
+                return $column;
+            }
+        }
+
+        $this->fail("Column $name not found on $table");
     }
 
     #[Test]
@@ -52,30 +65,25 @@ class MigrationTest extends BaseTestCase
 
         $this->assertTrue($schema->hasColumn('discussion_user', 'bookmarked_at'));
 
-        $column = $this->database()
-            ->getDoctrineSchemaManager()
-            ->listTableDetails($this->prefixed('discussion_user'))
-            ->getColumn('bookmarked_at');
-
-        $this->assertFalse($column->getNotnull(), 'bookmarked_at must be nullable');
+        $this->assertTrue(
+            $this->column('discussion_user', 'bookmarked_at')['nullable'],
+            'bookmarked_at must be nullable'
+        );
     }
 
     /**
-     * The gambit filters on this column for every bookmarks page view, so the index
+     * The bookmarked filter reads this column for every bookmarks page view, so the index
      * matters.
-     *
      */
     #[Test]
     public function bookmarked_at_is_indexed(): void
     {
-        $indexes = $this->database()
-            ->getDoctrineSchemaManager()
-            ->listTableIndexes($this->prefixed('discussion_user'));
+        $indexes = $this->database()->getSchemaBuilder()->getIndexes('discussion_user');
 
         $indexed = false;
 
         foreach ($indexes as $index) {
-            if (in_array('bookmarked_at', $index->getColumns(), true)) {
+            if (in_array('bookmarked_at', $index['columns'], true)) {
                 $indexed = true;
             }
         }
@@ -108,50 +116,55 @@ class MigrationTest extends BaseTestCase
     #[Test]
     public function post_user_bookmark_created_at_defaults_to_the_current_timestamp(): void
     {
-        $column = $this->database()
-            ->getDoctrineSchemaManager()
-            ->listTableDetails($this->prefixed('post_user_bookmark'))
-            ->getColumn('created_at');
+        $default = (string) $this->column('post_user_bookmark', 'created_at')['default'];
 
-        $this->assertEqualsIgnoringCase('CURRENT_TIMESTAMP', (string) $column->getDefault());
+        // Each driver reports this differently: MySQL as `CURRENT_TIMESTAMP`, SQLite as the
+        // literal text from the DDL, PostgreSQL as `now()`. All that matters is that the
+        // default is the current time rather than absent.
+        $this->assertMatchesRegularExpression(
+            '/current_timestamp|now\(\)/i',
+            $default,
+            "created_at should default to the current timestamp, got '$default'"
+        );
     }
 
     /**
      * The pivot is keyed on both columns, which is what makes a repeated bookmark a
      * no-op rather than a duplicate row.
-     *
      */
     #[Test]
     public function post_user_bookmark_is_keyed_on_both_columns(): void
     {
-        $primary = $this->database()
-            ->getDoctrineSchemaManager()
-            ->listTableDetails($this->prefixed('post_user_bookmark'))
-            ->getPrimaryKey();
+        $indexes = $this->database()->getSchemaBuilder()->getIndexes('post_user_bookmark');
 
-        $this->assertNotNull($primary);
-        $this->assertEqualsCanonicalizing(['post_id', 'user_id'], $primary->getColumns());
+        $primary = null;
+
+        foreach ($indexes as $index) {
+            if ($index['primary']) {
+                $primary = $index;
+            }
+        }
+
+        $this->assertNotNull($primary, 'post_user_bookmark should have a primary key');
+        $this->assertEqualsCanonicalizing(['post_id', 'user_id'], $primary['columns']);
     }
 
     /**
      * Deleting a post or user must take the pivot rows with it rather than leaving
      * orphans behind.
-     *
      */
     #[Test]
     public function post_user_bookmark_cascades_on_delete(): void
     {
-        $foreignKeys = $this->database()
-            ->getDoctrineSchemaManager()
-            ->listTableForeignKeys($this->prefixed('post_user_bookmark'));
+        $foreignKeys = $this->database()->getSchemaBuilder()->getForeignKeys('post_user_bookmark');
 
         $this->assertCount(2, $foreignKeys);
 
         foreach ($foreignKeys as $foreignKey) {
             $this->assertEquals(
-                'CASCADE',
-                strtoupper((string) $foreignKey->onDelete()),
-                'Expected ON DELETE CASCADE for '.implode(',', $foreignKey->getLocalColumns())
+                'cascade',
+                strtolower((string) $foreignKey['on_delete']),
+                'Expected ON DELETE CASCADE for '.implode(',', $foreignKey['columns'])
             );
         }
     }
@@ -166,8 +179,10 @@ class MigrationTest extends BaseTestCase
     public function rolling_back_preserves_existing_data(): void
     {
         $this->database()->table('users')->insert($this->normalUser());
+        // `slug` is NOT NULL with no database default — the model normally fills it in from
+        // the title — so a raw insert has to provide it.
         $this->database()->table('discussions')->insert([
-            'id' => 1, 'title' => 'Kept', 'created_at' => '2026-01-01 00:00:00', 'user_id' => 2, 'comment_count' => 0,
+            'id' => 1, 'title' => 'Kept', 'slug' => 'kept', 'created_at' => '2026-01-01 00:00:00', 'user_id' => 2, 'comment_count' => 0,
         ]);
         $this->database()->table('posts')->insert([
             'id' => 1, 'number' => 1, 'discussion_id' => 1, 'created_at' => '2026-01-01 00:00:00',

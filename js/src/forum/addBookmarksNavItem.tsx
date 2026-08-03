@@ -2,7 +2,6 @@ import IndexSidebar from 'flarum/forum/components/IndexSidebar';
 import { extend } from 'flarum/common/extend';
 import LinkButton from 'flarum/common/components/LinkButton';
 import app from 'flarum/forum/app';
-import IndexPage from 'flarum/forum/components/IndexPage';
 
 export default function addBookmarksNavItem(): void {
   extend(IndexSidebar.prototype, 'navItems', (items) => {
@@ -10,9 +9,10 @@ export default function addBookmarksNavItem(): void {
 
     items.add(
       'fof-bookmarks',
-      <LinkButton href={app.route('fof-bookmarks')} icon="fas fa-bookmark">
+      <LinkButton href={app.route('fof-bookmarks')} icon="fa-solid fa-bookmark">
         {app.translator.trans('fof-bookmarks.forum.page.link')}
-      </LinkButton>
+      </LinkButton>,
+      89
     );
   });
 }

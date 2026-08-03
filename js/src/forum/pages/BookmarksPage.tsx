@@ -1,19 +1,15 @@
-import IndexSidebar from 'flarum/forum/components/IndexSidebar';
-import Button from 'flarum/common/components/Button';
-import Link from 'flarum/common/components/Link';
 import LinkButton from 'flarum/common/components/LinkButton';
-import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import Page, { type IPageAttrs } from 'flarum/common/components/Page';
-import Placeholder from 'flarum/common/components/Placeholder';
 import listItems from 'flarum/common/helpers/listItems';
-import type Post from 'flarum/common/models/Post';
 import ItemList from 'flarum/common/utils/ItemList';
 import classList from 'flarum/common/utils/classList';
 import extractText from 'flarum/common/utils/extractText';
 import app from 'flarum/forum/app';
-import CommentPost from 'flarum/forum/components/CommentPost';
 import DiscussionList from 'flarum/forum/components/DiscussionList';
 import IndexPage from 'flarum/forum/components/IndexPage';
+import IndexSidebar from 'flarum/forum/components/IndexSidebar';
+import PageStructure from 'flarum/forum/components/PageStructure';
+import PostList from 'flarum/forum/components/PostList';
 import DiscussionListState from 'flarum/forum/states/DiscussionListState';
 import type Mithril from 'mithril';
 import BookmarkedPostListState from '../states/BookmarkedPostListState';
@@ -31,9 +27,9 @@ const TAB_ICONS: Record<BookmarksTab, string> = {
  * The bookmarks page, listing the actor's bookmarked discussions and posts under one
  * route with a tab for each.
  *
- * Discussions reuse core's `DiscussionList` via the `is:bookmarked` gambit, so sorting
- * and pagination behave exactly as they do on the index. Posts use their own list state
- * driven by the `bookmarked` filter.
+ * Discussions reuse core's `DiscussionList` via the `bookmarked` filter, so sorting and
+ * pagination behave exactly as they do on the index. Posts use their own list state driven
+ * by the same filter on the post searcher.
  */
 export default class BookmarksPage extends Page {
   private tab: BookmarksTab = 'discussions';
@@ -55,7 +51,13 @@ export default class BookmarksPage extends Page {
     // mutable state, which also makes /bookmarks?tab=posts work as a direct link.
     this.tab = m.route.param('tab') === 'posts' ? 'posts' : 'discussions';
 
-    this.discussions = new DiscussionListState({ q: 'is:bookmarked' });
+    // The backend exposes a `bookmarked` filter; `is:bookmarked` is only the gambit text
+    // the search box translates into it, so the filter is passed directly here.
+    //
+    // It has to be nested under `filter`: `DiscussionListState.requestParams()` spreads
+    // `params.filter` into the request and special-cases only `params.q`, so a top-level
+    // key is silently dropped and the list comes back unfiltered.
+    this.discussions = new DiscussionListState({ filter: { bookmarked: true } });
     this.posts = new BookmarkedPostListState();
 
     this.loadCurrentTab();
@@ -65,23 +67,17 @@ export default class BookmarksPage extends Page {
   }
 
   view(): Mithril.Children {
+    // `PageStructure` owns the hero/sidebar/content scaffolding, and `IndexSidebar` renders
+    // its own `<nav>` wrapper plus the item classes its children rely on — notably
+    // `App-primaryControl` on the "Start a Discussion" button, which positions it. Building
+    // that markup by hand here dropped those classes and shifted the button.
     return (
-      <div className="BookmarksPage IndexPage">
-        {IndexPage.prototype.hero()}
-        <div className="container">
-          <div className="sideNavContainer">
-            <nav className="IndexPage-nav sideNav">
-              <ul>{listItems(IndexSidebar.prototype.items().toArray())}</ul>
-            </nav>
-            <div className="IndexPage-results sideNavOffset">
-              <div className="IndexPage-toolbar">
-                <ul className="IndexPage-toolbar-view">{listItems(this.tabItems().toArray())}</ul>
-              </div>
-              {this.content()}
-            </div>
-          </div>
+      <PageStructure className="BookmarksPage IndexPage" hero={() => IndexPage.prototype.hero()} sidebar={() => <IndexSidebar />}>
+        <div className="IndexPage-toolbar">
+          <ul className="IndexPage-toolbar-view">{listItems(this.tabItems().toArray())}</ul>
         </div>
-      </div>
+        {this.content()}
+      </PageStructure>
     );
   }
 
@@ -113,52 +109,12 @@ export default class BookmarksPage extends Page {
     return app.route('fof-bookmarks', tab === 'discussions' ? {} : { tab });
   }
 
+  /**
+   * Both tabs render through core's list components, which already handle the initial
+   * loading indicator, the empty placeholder, pagination and the per-item markup.
+   */
   private content(): Mithril.Children {
-    return this.tab === 'discussions' ? <DiscussionList state={this.discussions} /> : this.postsContent();
-  }
-
-  private postsContent(): Mithril.Children {
-    if (this.posts.isInitialLoading()) {
-      return <LoadingIndicator />;
-    }
-
-    if (this.posts.isEmpty()) {
-      return <Placeholder text={app.translator.trans('fof-bookmarks.forum.page.empty.posts')} />;
-    }
-
-    return (
-      <div className="PostsUserPage">
-        <ul className="PostsUserPage-list">
-          {this.posts.items().map((post: Post) => (
-            <li key={post.id()}>
-              <div className="PostsUserPage-discussion">
-                {app.translator.trans('core.forum.user.in_discussion_text', {
-                  discussion: <Link href={app.route.post(post)}>{post.discussion().title()}</Link>,
-                })}
-              </div>
-              <CommentPost post={post} />
-            </li>
-          ))}
-        </ul>
-        {this.postsPagination()}
-      </div>
-    );
-  }
-
-  private postsPagination(): Mithril.Children {
-    if (this.posts.isLoadingNext()) {
-      return <LoadingIndicator />;
-    }
-
-    if (!this.posts.hasNext()) return null;
-
-    return (
-      <div className="PostsUserPage-loadMore">
-        <Button className="Button" onclick={() => this.posts.loadNext().then(() => m.redraw())}>
-          {app.translator.trans('core.forum.user.posts_load_more_button')}
-        </Button>
-      </div>
-    );
+    return this.tab === 'discussions' ? <DiscussionList state={this.discussions} /> : <PostList state={this.posts} />;
   }
 
   /**

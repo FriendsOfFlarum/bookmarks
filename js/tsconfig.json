@@ -18,7 +18,7 @@
     "paths": {
       "flarum/*": ["../vendor/flarum/core/js/dist-typings/*"],
 // <CUSTOM-2>
-      "@fof/blog/*": ["../vendor/fof/blog/js/dist-typings/*"],
+      "ext:fof/blog/*": ["../vendor/fof/blog/js/dist-typings/*"],
 // </CUSTOM-2>
     }
   }

@@ -11,12 +11,24 @@
 
 namespace FoF\Bookmarks\Search\Filter;
 
+use Flarum\Search\Database\DatabaseSearchState;
+use Flarum\Search\Filter\FilterInterface;
 use Flarum\Search\SearchState;
 use Illuminate\Database\Query\Builder;
-use Flarum\Search\Filter\FilterInterface;
 
-class BookmarkedFilter implements FilterInterface
+/**
+ * Restricts a discussion listing to the actor's bookmarked discussions.
+ *
+ * Discussion bookmarks are a timestamp on core's `discussion_user` state table.
+ *
+ * @implements FilterInterface<DatabaseSearchState>
+ */
+class DiscussionBookmarkedFilter implements FilterInterface
 {
+    public function getFilterKey(): string
+    {
+        return 'bookmarked';
+    }
 
     public function filter(SearchState $state, array|string $value, bool $negate): void
     {
@@ -30,9 +42,5 @@ class BookmarkedFilter implements FilterInterface
                 ->where('user_id', $actor->id)
                 ->whereNotNull('bookmarked_at');
         });
-    }
-    public function getFilterKey(): string
-    {
-        return 'bookmarked';
     }
 }

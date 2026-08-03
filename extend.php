@@ -11,28 +11,31 @@
 
 namespace FoF\Bookmarks;
 
-use Flarum\Api\Controller;
-use Flarum\Api\Serializer\DiscussionSerializer;
-use Flarum\Api\Serializer\PostSerializer;
-use Flarum\Discussion\Discussion;
-use Flarum\Discussion\Event\Saving as DiscussionSaving;
-use Flarum\Discussion\Search\DiscussionSearcher;
-use Flarum\Discussion\UserState;
-use Flarum\Extend;
-use Flarum\Post\Event\Saving as PostSaving;
-use Flarum\Post\Filter\PostFilterer;
-use Flarum\Post\Post;
-use Flarum\User\User;
+use Carbon\Carbon;
 use Flarum\Api\Context;
 use Flarum\Api\Endpoint;
 use Flarum\Api\Resource;
 use Flarum\Api\Schema;
+use Flarum\Discussion\Discussion;
+use Flarum\Discussion\Search\DiscussionSearcher;
+use Flarum\Discussion\UserState;
+use Flarum\Extend;
+use Flarum\Post\Event\Deleted as PostDeleted;
+use Flarum\Post\Filter\PostSearcher;
+use Flarum\Post\Post;
+use Flarum\Search\Database\DatabaseSearchDriver;
+use Flarum\User\User;
 
 return [
     (new Extend\Frontend('forum'))
         ->js(__DIR__.'/js/dist/forum.js')
+        // The bookmarks page is loaded as its own chunk (see `js/src/forum/extend.ts`).
+        // Webpack emits it under `js/dist/forum/`, and registering that directory is what
+        // makes those chunks resolvable at runtime.
+        ->jsDirectory(__DIR__.'/js/dist/forum')
         ->css(__DIR__.'/less/forum.less')
         ->route('/bookmarks', 'fof-bookmarks'),
+
     (new Extend\Frontend('admin'))
         ->js(__DIR__.'/js/dist/admin.js')
         ->css(__DIR__.'/less/admin.less'),
@@ -46,15 +49,38 @@ return [
     (new Extend\Model(UserState::class))
         ->cast('bookmarked_at', 'datetime'),
 
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiSerializer(DiscussionSerializer::class))
-        ->attribute('bookmarked', function (DiscussionSerializer $serializer, Discussion $discussion): bool {
-            return $discussion->state ? !is_null($discussion->state->bookmarked_at) : false;
+    (new Extend\ApiResource(Resource\DiscussionResource::class))
+        ->fields(fn () => [
+            Schema\Boolean::make('bookmarked')
+                ->get(function (Discussion $discussion): bool {
+                    return $discussion->state ? !is_null($discussion->state->bookmarked_at) : false;
+                })
+                // Left writable for guests so that an unauthenticated write is rejected by
+                // `assertRegistered()` below with a 401, rather than being silently dropped
+                // as a non-writable field.
+                ->writable()
+                // The state row belongs to the actor rather than the discussion, so it is
+                // written after the discussion itself has been saved.
+                ->save(function (Discussion $discussion, bool $value, Context $context): void {
+                    $actor = $context->getActor();
+
+                    $actor->assertRegistered();
+
+                    $state = $discussion->stateFor($actor);
+                    $state->bookmarked_at = $value ? Carbon::now() : null;
+                    $state->save();
+                }),
+        ])
+        // The discussion endpoints serialize their posts through the post resource, so the
+        // actor-scoped bookmark state has to be loaded for those nested posts too.
+        ->endpoint(['index', 'show', 'create', 'update'], function (Endpoint\Endpoint $endpoint): Endpoint\Endpoint {
+            return $endpoint
+                ->eagerLoad('posts.bookmarkState')
+                ->eagerLoadWhere('posts.bookmarkState', new ScopeBookmarkState());
         }),
 
     (new Extend\Event())
-        ->listen(DiscussionSaving::class, Listeners\SaveDiscussion::class)
-        ->listen(PostSaving::class, Listeners\SavePost::class),
+        ->listen(PostDeleted::class, Listeners\DeleteBookmarksOnPostDeletion::class),
 
     // Post bookmarks have no core-provided state row, so they use their own pivot
     // table plus an actor-scoped relationship to expose the current state.
@@ -62,39 +88,54 @@ return [
         ->belongsToMany('bookmarks', User::class, 'post_user_bookmark', 'post_id', 'user_id')
         ->hasOne('bookmarkState', BookmarkState::class, 'post_id'),
 
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiSerializer(PostSerializer::class))
-        ->attribute('bookmarked', function (PostSerializer $serializer, Post $post): bool {
-            // `bookmarkState` is eager-loaded and scoped to the actor by every
-            // post-serializing controller below, so this is a relation read rather than a
-            // query. The relation is null when the actor has not bookmarked the post.
-            //
-            // `getRelation()` is used in preference to the magic property because
-            // flarum/phpstan types hasOne relations added by `Extend\Model` as
-            // non-nullable, which makes a null check on the property look redundant.
-            return $post->relationLoaded('bookmarkState') && $post->getRelation('bookmarkState') !== null;
-        }),
+    (new Extend\ApiResource(Resource\PostResource::class))
+        ->fields(fn () => [
+            Schema\Boolean::make('bookmarked')
+                ->get(function (Post $post): bool {
+                    // `bookmarkState` is eager-loaded and scoped to the actor by the
+                    // endpoint mutators below, so this is a relation read rather than a
+                    // query. The relation is null when the actor has not bookmarked the post.
+                    //
+                    // `getRelation()` is used in preference to the magic property because
+                    // flarum/phpstan types hasOne relations added by `Extend\Model` as
+                    // non-nullable, which makes a null check on the property look redundant.
+                    return $post->relationLoaded('bookmarkState') && $post->getRelation('bookmarkState') !== null;
+                })
+                // Left writable for guests so that an unauthenticated write is rejected by
+                // `assertRegistered()` below with a 401, rather than being silently dropped
+                // as a non-writable field.
+                ->writable()
+                // Written with `save()` rather than `set()` because the pivot row needs the
+                // post's ID, which does not exist until a newly created post is saved.
+                ->save(function (Post $post, bool $value, Context $context): void {
+                    $actor = $context->getActor();
 
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiController(Controller\ShowDiscussionController::class))
-        ->load('posts.bookmarkState')
-        ->loadWhere('posts.bookmarkState', new ScopeBookmarkState()),
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiController(Controller\ListPostsController::class))
-        ->load('bookmarkState')
-        ->loadWhere('bookmarkState', new ScopeBookmarkState()),
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiController(Controller\ShowPostController::class))
-        ->load('bookmarkState')
-        ->loadWhere('bookmarkState', new ScopeBookmarkState()),
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiController(Controller\CreatePostController::class))
-        ->load('bookmarkState')
-        ->loadWhere('bookmarkState', new ScopeBookmarkState()),
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiController(Controller\UpdatePostController::class))
-        ->load('bookmarkState')
-        ->loadWhere('bookmarkState', new ScopeBookmarkState()),
+                    $actor->assertRegistered();
+
+                    if ($value) {
+                        // `syncWithoutDetaching` is idempotent, so bookmarking an
+                        // already-bookmarked post is a no-op rather than a duplicate key error.
+                        $post->bookmarks()->syncWithoutDetaching([$actor->id]);
+                    } else {
+                        $post->bookmarks()->detach($actor->id);
+                    }
+
+                    // The relation was eager-loaded (or absent) before this write, so it is
+                    // refreshed to keep the serialized `bookmarked` value in step with what
+                    // was just persisted.
+                    $post->setRelation(
+                        'bookmarkState',
+                        $value ? $post->bookmarkState()->where('user_id', $actor->id)->first() : null
+                    );
+                }),
+        ])
+        // Every endpoint that serializes posts needs the actor-scoped bookmark state
+        // eager-loaded, otherwise `bookmarked` above would fall back to `false`.
+        ->endpoint(['index', 'show', 'create', 'update'], function (Endpoint\Endpoint $endpoint): Endpoint\Endpoint {
+            return $endpoint
+                ->eagerLoad('bookmarkState')
+                ->eagerLoadWhere('bookmarkState', new ScopeBookmarkState());
+        }),
 
     // Defaults are registered so every setting has a usable value in the forum payload
     // before an admin has ever opened the extension page.
@@ -105,7 +146,10 @@ return [
         ->serializeToForum('fof-bookmarks.independentButton', 'fof-bookmarks.independentButton', 'boolval')
         ->serializeToForum('fof-bookmarks.postButtonPosition', 'fof-bookmarks.postButtonPosition')
         ->serializeToForum('fof-bookmarks.postHeaderBadge', 'fof-bookmarks.postHeaderBadge', 'boolval'),
-    (new Extend\SearchDriver(\Flarum\Search\Database\DatabaseSearchDriver::class))
-        ->addFilter(DiscussionSearcher::class, Search\Filter\BookmarkedFilter::class)
-        ->addFilter(\Flarum\Post\Filter\PostSearcher::class, Filter\BookmarkedFilter::class),
+    (new Extend\SearchDriver(DatabaseSearchDriver::class))
+        ->addFilter(DiscussionSearcher::class, Search\Filter\DiscussionBookmarkedFilter::class)
+        ->addFilter(PostSearcher::class, Search\Filter\PostBookmarkedFilter::class)
+        // fof/blog hides blog-tagged discussions from every discussion listing, which
+        // would silently drop bookmarked articles from the bookmarks page.
+        ->addMutator(DiscussionSearcher::class, Search\AllowBlogArticlesWhenFilteringBookmarks::class),
 ];

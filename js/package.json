@@ -3,19 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "devDependencies": {
-    "flarum-webpack-config": "^3.0.0",
-    "webpack": "^5.65.0",
-    "webpack-cli": "^4.9.1",
-    "prettier": "^2.5.1",
+    "@flarum/jest-config": "^2.0.0",
     "@flarum/prettier-config": "^1.0.0",
+    "@types/node": "^18.19.0",
     "flarum-tsconfig": "^2.0.0",
+    "flarum-webpack-config": "^3.0.0",
+    "prettier": "^3.9.6",
     "typescript": "^4.5.4",
     "typescript-coverage-report": "^0.6.1",
-    "@types/node": "^18.19.0"
-  },
-  "//": "@types/node is pinned because webpack's toolchain pulls in a version whose syntax TypeScript 4.x cannot parse, which breaks `yarn check-typings` with errors from node_modules rather than this extension.",
-  "resolutions": {
-    "@types/node": "^18.19.0"
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1"
   },
   "scripts": {
     "dev": "webpack --mode development --watch",

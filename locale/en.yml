@@ -36,10 +36,9 @@ fof-bookmarks:
       tab:
         discussions: Discussions
         posts: Posts
-      # The discussions tab uses core's DiscussionList, which supplies its own
-      # `core.forum.discussion_list.empty_text` placeholder.
-      empty:
-        posts: You haven't bookmarked any posts yet.
+      # Both tabs render through core's list components, which supply their own
+      # `core.forum.discussion_list.empty_text` / `core.forum.post_list.empty_text`
+      # placeholders.
   lib:
     gambits:
       bookmarked:
