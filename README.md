@@ -35,8 +35,7 @@ When [fof/blog](https://github.com/FriendsOfFlarum/blog) is installed, article p
 
 ## Requirements
 
-- PHP 8.2 or higher
-- Flarum 1.8 or higher
+- Flarum 2.0 or higher
 
 ## Installation
 
