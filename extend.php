@@ -56,9 +56,6 @@ return [
         ->listen(DiscussionSaving::class, Listeners\SaveDiscussion::class)
         ->listen(PostSaving::class, Listeners\SavePost::class),
 
-    (new Extend\SimpleFlarumSearch(DiscussionSearcher::class))
-        ->addGambit(Search\Gambit\BookmarkedGambit::class),
-
     // Post bookmarks have no core-provided state row, so they use their own pivot
     // table plus an actor-scoped relationship to expose the current state.
     (new Extend\Model(Post::class))
@@ -99,9 +96,6 @@ return [
         ->load('bookmarkState')
         ->loadWhere('bookmarkState', new ScopeBookmarkState()),
 
-    (new Extend\Filter(PostFilterer::class))
-        ->addFilter(Filter\BookmarkedFilter::class),
-
     // Defaults are registered so every setting has a usable value in the forum payload
     // before an admin has ever opened the extension page.
     (new Extend\Settings())
@@ -111,4 +105,7 @@ return [
         ->serializeToForum('fof-bookmarks.independentButton', 'fof-bookmarks.independentButton', 'boolval')
         ->serializeToForum('fof-bookmarks.postButtonPosition', 'fof-bookmarks.postButtonPosition')
         ->serializeToForum('fof-bookmarks.postHeaderBadge', 'fof-bookmarks.postHeaderBadge', 'boolval'),
+    (new Extend\SearchDriver(\Flarum\Search\Database\DatabaseSearchDriver::class))
+        ->addFilter(DiscussionSearcher::class, Search\Filter\BookmarkedFilter::class)
+        ->addFilter(\Flarum\Post\Filter\PostSearcher::class, Filter\BookmarkedFilter::class),
 ];

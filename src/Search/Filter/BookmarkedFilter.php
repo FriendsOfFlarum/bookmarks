@@ -9,30 +9,30 @@
  * file that was distributed with this source code.
  */
 
-namespace FoF\Bookmarks\Search\Gambit;
+namespace FoF\Bookmarks\Search\Filter;
 
-use Flarum\Search\AbstractRegexGambit;
 use Flarum\Search\SearchState;
 use Illuminate\Database\Query\Builder;
+use Flarum\Search\Filter\FilterInterface;
 
-class BookmarkedGambit extends AbstractRegexGambit
+class BookmarkedFilter implements FilterInterface
 {
-    protected function getGambitPattern(): string
-    {
-        return 'is:bookmarked';
-    }
 
-    protected function conditions(SearchState $search, array $matches, $negate)
+    public function filter(SearchState $state, array|string $value, bool $negate): void
     {
-        $actor = $search->getActor();
+        $actor = $state->getActor();
 
         $method = $negate ? 'whereNotIn' : 'whereIn';
 
-        $search->getQuery()->$method('discussions.id', function (Builder $query) use ($actor) {
+        $state->getQuery()->$method('discussions.id', function (Builder $query) use ($actor) {
             $query->select('discussion_id')
                 ->from('discussion_user')
                 ->where('user_id', $actor->id)
                 ->whereNotNull('bookmarked_at');
         });
+    }
+    public function getFilterKey(): string
+    {
+        return 'bookmarked';
     }
 }

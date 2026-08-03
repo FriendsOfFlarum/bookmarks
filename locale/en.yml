@@ -40,3 +40,7 @@ fof-bookmarks:
       # `core.forum.discussion_list.empty_text` placeholder.
       empty:
         posts: You haven't bookmarked any posts yet.
+  lib:
+    gambits:
+      bookmarked:
+        key: bookmarked

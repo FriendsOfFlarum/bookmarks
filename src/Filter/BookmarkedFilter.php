@@ -11,8 +11,8 @@
 
 namespace FoF\Bookmarks\Filter;
 
-use Flarum\Filter\FilterInterface;
-use Flarum\Filter\FilterState;
+use Flarum\Search\Filter\FilterInterface;
+use Flarum\Search\SearchState;
 use Illuminate\Database\Query\Builder;
 
 class BookmarkedFilter implements FilterInterface
@@ -22,11 +22,11 @@ class BookmarkedFilter implements FilterInterface
         return 'bookmarked';
     }
 
-    public function filter(FilterState $filterState, string $filterValue, bool $negate): void
+    public function filter(SearchState $state, array|string $value, bool $negate): void
     {
-        $actor = $filterState->getActor();
+        $actor = $state->getActor();
 
-        $filterState->getQuery()->whereIn('id', function (Builder $query) use ($actor) {
+        $state->getQuery()->whereIn('id', function (Builder $query) use ($actor) {
             $query->select('post_id')
                 ->from('post_user_bookmark')
                 ->where('user_id', $actor->id);
