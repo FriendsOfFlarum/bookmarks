@@ -55,7 +55,6 @@ class SettingsTest extends BaseTestCase
     /**
      * Without a default this serializes as null, leaving the admin dropdown blank and
      * forcing the frontend to invent a fallback.
-     *
      */
     #[Test]
     public function post_button_position_defaults_to_the_header(): void

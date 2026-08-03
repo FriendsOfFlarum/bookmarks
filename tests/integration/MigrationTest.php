@@ -111,7 +111,6 @@ class MigrationTest extends BaseTestCase
      * table. That is what lets the relationship be declared with the typed
      * `belongsToMany()` extender instead of a closure calling `withTimestamps()`, so the
      * default is load-bearing rather than a convenience.
-     *
      */
     #[Test]
     public function post_user_bookmark_created_at_defaults_to_the_current_timestamp(): void
@@ -173,7 +172,6 @@ class MigrationTest extends BaseTestCase
      * Disabling the extension must not drop the column, because it may hold bookmarks
      * created by one of the extensions this one replaces. Both `down` handlers are
      * deliberately no-ops.
-     *
      */
     #[Test]
     public function rolling_back_preserves_existing_data(): void

@@ -12,11 +12,11 @@
 namespace FoF\Bookmarks\Tests\integration;
 
 use Carbon\Carbon;
+use Flarum\Discussion\Discussion;
+use Flarum\Post\Post;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase as BaseTestCase;
 use Flarum\User\User;
-use Flarum\Discussion\Discussion;
-use Flarum\Post\Post;
 
 /**
  * Shared fixtures for the bookmark tests.
@@ -40,10 +40,10 @@ abstract class TestCase extends BaseTestCase
             User::class => [
                 $this->normalUser(),
                 [
-                    'id'                 => 3,
-                    'username'           => 'other',
-                    'password'           => '$2y$10$LO59tiT7uggl6Oe23o/O6.utnF6ipngYjvMvaxo1TciKqBttDNKim', // "too-obscure"
-                    'email'              => 'other@machine.local',
+                    'id' => 3,
+                    'username' => 'other',
+                    'password' => '$2y$10$LO59tiT7uggl6Oe23o/O6.utnF6ipngYjvMvaxo1TciKqBttDNKim', // "too-obscure"
+                    'email' => 'other@machine.local',
                     'is_email_confirmed' => 1,
                 ],
             ],
@@ -68,7 +68,7 @@ abstract class TestCase extends BaseTestCase
     {
         $this->database()->table('discussion_user')->insert([
             'discussion_id' => $discussionId,
-            'user_id'       => $userId,
+            'user_id' => $userId,
             'bookmarked_at' => $at,
         ]);
     }
@@ -80,8 +80,8 @@ abstract class TestCase extends BaseTestCase
     protected function bookmarkPost(int $postId, int $userId, string $at = '2026-02-01 12:00:00'): void
     {
         $this->database()->table('post_user_bookmark')->insert([
-            'post_id'    => $postId,
-            'user_id'    => $userId,
+            'post_id' => $postId,
+            'user_id' => $userId,
             'created_at' => $at,
         ]);
     }

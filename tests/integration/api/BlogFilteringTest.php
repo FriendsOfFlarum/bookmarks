@@ -58,7 +58,7 @@ class BlogFilteringTest extends BaseTestCase
 
         $this->prepareDatabase([
             User::class => [$this->normalUser()],
-            Tag::class  => [
+            Tag::class => [
                 ['id' => 1, 'name' => 'General', 'slug' => 'general', 'position' => 0],
                 ['id' => self::BLOG_TAG, 'name' => 'Blog', 'slug' => 'blog', 'position' => 1],
             ],
@@ -81,7 +81,7 @@ class BlogFilteringTest extends BaseTestCase
     {
         $this->database()->table('discussion_user')->insert([
             'discussion_id' => $discussionId,
-            'user_id'       => $userId,
+            'user_id' => $userId,
             'bookmarked_at' => '2026-02-01 12:00:00',
         ]);
     }

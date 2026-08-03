@@ -166,7 +166,6 @@ class FilteringTest extends TestCase
     /**
      * The frontend sends the flag as the string '1' rather than a boolean, because core
      * types filter values as strings. The backend must treat it the same way.
-     *
      */
     #[Test]
     public function bookmarked_post_filter_accepts_a_string_flag(): void
@@ -189,7 +188,6 @@ class FilteringTest extends TestCase
      * never both, so naming relationships would drop the ones other extensions register
      * via `addInclude()` — leaving them to render against relationships that were never
      * loaded.
-     *
      */
     #[Test]
     public function post_listing_returns_the_controller_default_relationships(): void

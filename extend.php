@@ -53,7 +53,7 @@ return [
         ->fields(fn () => [
             Schema\Boolean::make('bookmarked')
                 ->get(function (Discussion $discussion): bool {
-                    return $discussion->state ? !is_null($discussion->state->bookmarked_at) : false;
+                    return $discussion->state ? ! is_null($discussion->state->bookmarked_at) : false;
                 })
                 // Left writable for guests so that an unauthenticated write is rejected by
                 // `assertRegistered()` below with a 401, rather than being silently dropped

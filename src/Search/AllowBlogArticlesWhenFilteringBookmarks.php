@@ -42,13 +42,13 @@ class AllowBlogArticlesWhenFilteringBookmarks
     {
         $actor = $state->getActor();
 
-        if (!$actor->exists) {
+        if (! $actor->exists) {
             return;
         }
 
         // Only relax the query for a bookmarks listing. Every other discussion list has to
         // keep hiding articles exactly as blog intends.
-        if (!$this->filteringOnBookmarks($criteria)) {
+        if (! $this->filteringOnBookmarks($criteria)) {
             return;
         }
 

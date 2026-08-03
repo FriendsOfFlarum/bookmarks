@@ -37,7 +37,7 @@ use Illuminate\Database\Schema\Builder;
  */
 return [
     'up' => function (Builder $schema) {
-        if (!$schema->hasTable('post_user_bookmark')) {
+        if (! $schema->hasTable('post_user_bookmark')) {
             return;
         }
 

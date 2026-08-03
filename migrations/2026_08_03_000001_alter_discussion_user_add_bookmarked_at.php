@@ -25,7 +25,7 @@ use Illuminate\Database\Schema\Builder;
  */
 return [
     'up' => function (Builder $schema) {
-        if (!$schema->hasColumn('discussion_user', 'bookmarked_at')) {
+        if (! $schema->hasColumn('discussion_user', 'bookmarked_at')) {
             $schema->table('discussion_user', function (Blueprint $table) {
                 $table->timestamp('bookmarked_at')->nullable()->index();
             });

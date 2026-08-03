@@ -45,7 +45,6 @@ class BookmarkTest extends TestCase
     /**
      * The bookmark relationship is per-user, so another user's bookmark must never be
      * reported as the actor's own.
-     *
      */
     #[Test]
     public function bookmarks_are_per_user(): void
@@ -73,7 +72,6 @@ class BookmarkTest extends TestCase
 
     /**
      * Every post in a listing must report the actor's own state, not the first row's.
-     *
      */
     #[Test]
     public function listing_reports_state_per_post(): void
@@ -97,7 +95,6 @@ class BookmarkTest extends TestCase
 
     /**
      * The same listing seen by a user with no bookmarks at all.
-     *
      */
     #[Test]
     public function listing_reports_no_state_for_another_user(): void
@@ -121,7 +118,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => true]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => true]]],
             ])
         );
 
@@ -140,7 +137,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => false]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => false]]],
             ])
         );
 
@@ -153,7 +150,6 @@ class BookmarkTest extends TestCase
 
     /**
      * Bookmarking twice must not fail on the pivot's composite primary key.
-     *
      */
     #[Test]
     public function bookmarking_twice_is_idempotent(): void
@@ -163,7 +159,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => true]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => true]]],
             ])
         );
 
@@ -178,7 +174,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => false]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => false]]],
             ])
         );
 
@@ -188,7 +184,6 @@ class BookmarkTest extends TestCase
 
     /**
      * Removing a bookmark must only affect the actor's own row.
-     *
      */
     #[Test]
     public function removing_a_bookmark_leaves_other_users_alone(): void
@@ -199,7 +194,7 @@ class BookmarkTest extends TestCase
         $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => false]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => false]]],
             ])
         );
 
@@ -213,7 +208,6 @@ class BookmarkTest extends TestCase
      * The relationship writes no timestamp of its own: `created_at` is `NOT NULL` and
      * filled by the database default, as core's `post_likes` table does. If that default
      * were ever lost the insert would fail outright.
-     *
      */
     #[Test]
     public function bookmarking_records_when_the_bookmark_was_made(): void
@@ -221,7 +215,7 @@ class BookmarkTest extends TestCase
         $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => true]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => true]]],
             ])
         );
 
@@ -249,7 +243,6 @@ class BookmarkTest extends TestCase
 
     /**
      * A request that does not mention `bookmarked` must leave an existing bookmark alone.
-     *
      */
     #[Test]
     public function unrelated_update_does_not_clear_the_bookmark(): void
@@ -259,7 +252,7 @@ class BookmarkTest extends TestCase
         $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['content' => 'Edited content.']]],
+                'json' => ['data' => ['attributes' => ['content' => 'Edited content.']]],
             ])
         );
 
@@ -269,7 +262,6 @@ class BookmarkTest extends TestCase
 
     /**
      * Deleting a post must take its bookmarks with it, via the pivot's cascade.
-     *
      */
     #[Test]
     public function deleting_a_post_removes_its_bookmarks(): void

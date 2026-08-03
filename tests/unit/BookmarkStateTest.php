@@ -20,7 +20,6 @@ class BookmarkStateTest extends TestCase
     /**
      * The model exists purely to eager-load rows of the pivot table, so the table name
      * is the whole of its contract.
-     *
      */
     #[Test]
     public function bookmark_state_uses_the_pivot_table(): void
