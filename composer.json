@@ -1,0 +1,116 @@
+{
+    "name": "fof/bookmarks",
+    "description": "Allow users to bookmark their favourite discussions and posts",
+    "keywords": [
+        "flarum",
+        "bookmarks"
+    ],
+    "type": "flarum-extension",
+    "license": "MIT",
+    "require": {
+        "php": "^8.0",
+        "flarum/core": "^1.8"
+    },
+    "authors": [
+        {
+            "name": "FriendsOfFlarum",
+            "homepage": "https://friendsofflarum.org"
+        },
+        {
+            "name": "Clark Winkelmann",
+            "homepage": "https://clarkwinkelmann.com/",
+            "role": "Original author"
+        },
+        {
+            "name": "IanM",
+            "email": "ian@flarum.org",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/FriendsOfFlarum/bookmarks/issues",
+        "source": "https://github.com/FriendsOfFlarum/bookmarks"
+    },
+    "homepage": "https://friendsofflarum.org",
+    "funding": [
+        {
+            "type": "website",
+            "url": "https://opencollective.com/fof/donate"
+        }
+    ],
+    "replace": {
+        "clarkwinkelmann/flarum-ext-bookmarks": "*",
+        "clarkwinkelmann/flarum-ext-discussion-bookmarks": "*",
+        "clarkwinkelmann/flarum-ext-post-bookmarks": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "FoF\\Bookmarks\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FoF\\Bookmarks\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-1.x": "1.x-dev"
+        },
+        "flarum-extension": {
+            "title": "FoF Bookmarks",
+            "category": "feature",
+            "icon": {
+                "name": "fas fa-bookmark",
+                "backgroundColor": "#e74c3c",
+                "color": "#fff"
+            },
+            "optional-dependencies": [
+                "fof/blog"
+            ]
+        },
+        "flarum-cli": {
+            "modules": {
+                "admin": true,
+                "forum": true,
+                "js": true,
+                "jsCommon": true,
+                "css": true,
+                "locale": true,
+                "gitConf": true,
+                "githubActions": true,
+                "prettier": true,
+                "typescript": true,
+                "bundlewatch": false,
+                "backendTesting": true,
+                "editorConfig": true,
+                "styleci": true
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require-dev": {
+        "flarum/phpstan": "*",
+        "flarum/testing": "^1.0.0",
+        "fof/blog": "^1.0"
+    },
+    "scripts": {
+        "analyse:phpstan": "phpstan analyse",
+        "clear-cache:phpstan": "phpstan clear-result-cache",
+        "test": [
+            "@test:unit",
+            "@test:integration"
+        ],
+        "test:unit": "phpunit -c tests/phpunit.unit.xml",
+        "test:integration": "phpunit -c tests/phpunit.integration.xml",
+        "test:setup": "@php tests/integration/setup.php"
+    },
+    "scripts-descriptions": {
+        "analyse:phpstan": "Run static analysis",
+        "test": "Runs all tests.",
+        "test:unit": "Runs all unit tests.",
+        "test:integration": "Runs all integration tests.",
+        "test:setup": "Sets up a database for use with integration tests. Execute this only once."
+    }
+}
