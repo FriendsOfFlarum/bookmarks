@@ -1,18 +1,14 @@
-import type Post from 'flarum/common/models/Post';
-import PaginatedListState, { type PaginatedListRequestParams } from 'flarum/common/states/PaginatedListState';
+import type { PaginatedListRequestParams } from 'flarum/common/states/PaginatedListState';
+import PostListState from 'flarum/forum/states/PostListState';
 /**
  * Paginated list of the actor's bookmarked posts, newest first.
  *
- * Only comment posts are requested: the bookmark button is only ever attached to
- * `CommentPost`, and event posts (renames, locks) have no content worth listing.
+ * Core's `PostListState` already provides everything but the `include` handling below: it
+ * defaults to `filter.type: 'comment'` — the bookmark button is only ever attached to
+ * `CommentPost`, and event posts (renames, locks) have no content worth listing — and to
+ * `sort: '-createdAt'`.
  */
-export default class BookmarkedPostListState extends PaginatedListState<Post> {
+export default class BookmarkedPostListState extends PostListState {
     constructor();
-    get type(): string;
-    protected requestParams(): PaginatedListRequestParams;
-    /**
-     * `getAllItems` is protected on the base class, so it is republished here for the page
-     * that renders this list.
-     */
-    items(): Post[];
+    requestParams(): PaginatedListRequestParams;
 }
