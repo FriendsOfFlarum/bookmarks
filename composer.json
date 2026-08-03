@@ -29,7 +29,8 @@
     ],
     "support": {
         "issues": "https://github.com/FriendsOfFlarum/bookmarks/issues",
-        "source": "https://github.com/FriendsOfFlarum/bookmarks"
+        "source": "https://github.com/FriendsOfFlarum/bookmarks",
+        "forum": "https://discuss.flarum.org/d/39642"
     },
     "homepage": "https://friendsofflarum.org",
     "funding": [
