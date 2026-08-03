@@ -23,6 +23,10 @@ use Flarum\Post\Event\Saving as PostSaving;
 use Flarum\Post\Filter\PostFilterer;
 use Flarum\Post\Post;
 use Flarum\User\User;
+use Flarum\Api\Context;
+use Flarum\Api\Endpoint;
+use Flarum\Api\Resource;
+use Flarum\Api\Schema;
 
 return [
     (new Extend\Frontend('forum'))
@@ -42,6 +46,7 @@ return [
     (new Extend\Model(UserState::class))
         ->cast('bookmarked_at', 'datetime'),
 
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiSerializer(DiscussionSerializer::class))
         ->attribute('bookmarked', function (DiscussionSerializer $serializer, Discussion $discussion): bool {
             return $discussion->state ? !is_null($discussion->state->bookmarked_at) : false;
@@ -60,6 +65,7 @@ return [
         ->belongsToMany('bookmarks', User::class, 'post_user_bookmark', 'post_id', 'user_id')
         ->hasOne('bookmarkState', BookmarkState::class, 'post_id'),
 
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiSerializer(PostSerializer::class))
         ->attribute('bookmarked', function (PostSerializer $serializer, Post $post): bool {
             // `bookmarkState` is eager-loaded and scoped to the actor by every
@@ -72,29 +78,23 @@ return [
             return $post->relationLoaded('bookmarkState') && $post->getRelation('bookmarkState') !== null;
         }),
 
-    /*
-     * Eager-load the actor's bookmark state on every controller that serializes posts.
-     *
-     * `load()` is used rather than `addInclude()` because it applies regardless of the
-     * `include` query parameter: the serializer attribute above reads the relation for
-     * every post, so leaving it to the client would mean one query per post whenever
-     * the include is omitted.
-     *
-     * `loadWhere()` receives the request, which is what allows the relationship to be
-     * scoped to the actor without resorting to global state.
-     */
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiController(Controller\ShowDiscussionController::class))
         ->load('posts.bookmarkState')
         ->loadWhere('posts.bookmarkState', new ScopeBookmarkState()),
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiController(Controller\ListPostsController::class))
         ->load('bookmarkState')
         ->loadWhere('bookmarkState', new ScopeBookmarkState()),
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiController(Controller\ShowPostController::class))
         ->load('bookmarkState')
         ->loadWhere('bookmarkState', new ScopeBookmarkState()),
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiController(Controller\CreatePostController::class))
         ->load('bookmarkState')
         ->loadWhere('bookmarkState', new ScopeBookmarkState()),
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiController(Controller\UpdatePostController::class))
         ->load('bookmarkState')
         ->loadWhere('bookmarkState', new ScopeBookmarkState()),
