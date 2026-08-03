@@ -98,7 +98,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/discussions/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => true]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => true]]],
             ])
         );
 
@@ -122,7 +122,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/discussions/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => false]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => false]]],
             ])
         );
 
@@ -144,16 +144,16 @@ class BookmarkTest extends TestCase
     public function bookmarking_preserves_read_state(): void
     {
         $this->database()->table('discussion_user')->insert([
-            'discussion_id'         => 1,
-            'user_id'               => 2,
+            'discussion_id' => 1,
+            'user_id' => 2,
             'last_read_post_number' => 2,
-            'last_read_at'          => '2026-01-05 00:00:00',
+            'last_read_at' => '2026-01-05 00:00:00',
         ]);
 
         $this->send(
             $this->request('PATCH', '/api/discussions/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => true]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => true]]],
             ])
         );
 
@@ -202,7 +202,7 @@ class BookmarkTest extends TestCase
         $this->send(
             $this->request('PATCH', '/api/discussions/1', [
                 'authenticatedAs' => 1,
-                'json'            => ['data' => ['attributes' => ['title' => 'Renamed by admin']]],
+                'json' => ['data' => ['attributes' => ['title' => 'Renamed by admin']]],
             ])
         );
 

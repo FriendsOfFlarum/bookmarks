@@ -128,7 +128,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => true]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => true]]],
             ])
         );
 
@@ -149,7 +149,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => false]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => false]]],
             ])
         );
 
@@ -172,7 +172,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => true]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => true]]],
             ])
         );
 
@@ -189,7 +189,7 @@ class BookmarkTest extends TestCase
         $response = $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => false]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => false]]],
             ])
         );
 
@@ -210,7 +210,7 @@ class BookmarkTest extends TestCase
         $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => false]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => false]]],
             ])
         );
 
@@ -232,7 +232,7 @@ class BookmarkTest extends TestCase
         $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['bookmarked' => true]]],
+                'json' => ['data' => ['attributes' => ['bookmarked' => true]]],
             ])
         );
 
@@ -272,7 +272,7 @@ class BookmarkTest extends TestCase
         $this->send(
             $this->request('PATCH', '/api/posts/1', [
                 'authenticatedAs' => 2,
-                'json'            => ['data' => ['attributes' => ['content' => 'Edited content.']]],
+                'json' => ['data' => ['attributes' => ['content' => 'Edited content.']]],
             ])
         );
 

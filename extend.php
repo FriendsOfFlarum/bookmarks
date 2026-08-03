@@ -44,7 +44,7 @@ return [
 
     (new Extend\ApiSerializer(DiscussionSerializer::class))
         ->attribute('bookmarked', function (DiscussionSerializer $serializer, Discussion $discussion): bool {
-            return $discussion->state ? !is_null($discussion->state->bookmarked_at) : false;
+            return $discussion->state ? ! is_null($discussion->state->bookmarked_at) : false;
         }),
 
     (new Extend\Event())

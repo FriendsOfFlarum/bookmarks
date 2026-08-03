@@ -17,7 +17,7 @@ class SavePost
 {
     public function handle(Saving $event): void
     {
-        if (!isset($event->data['attributes']['bookmarked'])) {
+        if (! isset($event->data['attributes']['bookmarked'])) {
             return;
         }
 
