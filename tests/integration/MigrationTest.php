@@ -35,6 +35,16 @@ class MigrationTest extends BaseTestCase
     }
 
     /**
+     * Doctrine's schema manager works with real table names, so the connection's prefix
+     * has to be applied by hand. Laravel's own schema builder does this itself, which is
+     * why only the Doctrine calls need it.
+     */
+    private function prefixed(string $table): string
+    {
+        return $this->database()->getTablePrefix().$table;
+    }
+
+    /**
      * @test
      */
     public function discussion_user_has_a_nullable_bookmarked_at_column(): void
@@ -45,7 +55,7 @@ class MigrationTest extends BaseTestCase
 
         $column = $this->database()
             ->getDoctrineSchemaManager()
-            ->listTableDetails('discussion_user')
+            ->listTableDetails($this->prefixed('discussion_user'))
             ->getColumn('bookmarked_at');
 
         $this->assertFalse($column->getNotnull(), 'bookmarked_at must be nullable');
@@ -61,7 +71,7 @@ class MigrationTest extends BaseTestCase
     {
         $indexes = $this->database()
             ->getDoctrineSchemaManager()
-            ->listTableIndexes('discussion_user');
+            ->listTableIndexes($this->prefixed('discussion_user'));
 
         $indexed = false;
 
@@ -103,7 +113,7 @@ class MigrationTest extends BaseTestCase
     {
         $column = $this->database()
             ->getDoctrineSchemaManager()
-            ->listTableDetails('post_user_bookmark')
+            ->listTableDetails($this->prefixed('post_user_bookmark'))
             ->getColumn('created_at');
 
         $this->assertEqualsIgnoringCase('CURRENT_TIMESTAMP', (string) $column->getDefault());
@@ -119,7 +129,7 @@ class MigrationTest extends BaseTestCase
     {
         $primary = $this->database()
             ->getDoctrineSchemaManager()
-            ->listTableDetails('post_user_bookmark')
+            ->listTableDetails($this->prefixed('post_user_bookmark'))
             ->getPrimaryKey();
 
         $this->assertNotNull($primary);
@@ -136,7 +146,7 @@ class MigrationTest extends BaseTestCase
     {
         $foreignKeys = $this->database()
             ->getDoctrineSchemaManager()
-            ->listTableForeignKeys('post_user_bookmark');
+            ->listTableForeignKeys($this->prefixed('post_user_bookmark'));
 
         $this->assertCount(2, $foreignKeys);
 
