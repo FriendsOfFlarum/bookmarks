@@ -44,7 +44,7 @@ export default function addPostControls(): void {
   extend(CommentPost.prototype, 'actionItems', function (items) {
     if (!app.session.user || buttonPosition() !== 'actions') return;
 
-    items.add('bookmark', <BookmarkButton subject={this.attrs.post as Post} labels="postButton" className="Button Button--link" alert />);
+    items.add('bookmark', <BookmarkButton subject={this.attrs.post as Post} labels="postButton" className="Button Button--link" alert />, 80);
   });
 
   extend(PostControls, 'userControls', function (items, post: Post) {
