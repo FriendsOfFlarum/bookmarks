@@ -13,7 +13,6 @@ namespace FoF\Bookmarks;
 
 use Carbon\Carbon;
 use Flarum\Api\Context;
-use Flarum\Api\Endpoint;
 use Flarum\Api\Resource;
 use Flarum\Api\Schema;
 use Flarum\Discussion\Discussion;
@@ -70,20 +69,14 @@ return [
                     $state->bookmarked_at = $value ? Carbon::now() : null;
                     $state->save();
                 }),
-        ])
-        // The discussion endpoints serialize their posts through the post resource, so the
-        // actor-scoped bookmark state has to be loaded for those nested posts too.
-        ->endpoint(['index', 'show', 'create', 'update'], function (Endpoint\Endpoint $endpoint): Endpoint\Endpoint {
-            return $endpoint
-                ->eagerLoad('posts.bookmarkState')
-                ->eagerLoadWhere('posts.bookmarkState', new ScopeBookmarkState());
-        }),
+        ]),
 
     (new Extend\Event())
         ->listen(PostDeleted::class, Listeners\DeleteBookmarksOnPostDeletion::class),
 
     // Post bookmarks have no core-provided state row, so they use their own pivot
-    // table plus an actor-scoped relationship to expose the current state.
+    // table. `bookmarkState` holds any user's row unless it is constrained to one, as
+    // ScopeBookmarkState does; the `bookmarked` field below does not read it.
     (new Extend\Model(Post::class))
         ->belongsToMany('bookmarks', User::class, 'post_user_bookmark', 'post_id', 'user_id')
         ->hasOne('bookmarkState', BookmarkState::class, 'post_id'),
@@ -91,16 +84,11 @@ return [
     (new Extend\ApiResource(Resource\PostResource::class))
         ->fields(fn () => [
             Schema\Boolean::make('bookmarked')
-                ->get(function (Post $post): bool {
-                    // `bookmarkState` is eager-loaded and scoped to the actor by the
-                    // endpoint mutators below, so this is a relation read rather than a
-                    // query. The relation is null when the actor has not bookmarked the post.
-                    //
-                    // `getRelation()` is used in preference to the magic property because
-                    // flarum/phpstan types hasOne relations added by `Extend\Model` as
-                    // non-nullable, which makes a null check on the property look redundant.
-                    return $post->relationLoaded('bookmarkState') && $post->getRelation('bookmarkState') !== null;
-                })
+                // Every post a response serializes, listed or included, has its bookmark
+                // looked up together with the others rather than one at a time: see
+                // BookmarkStateBuffer. That happens during serialization, after `save()`
+                // below, so the response to a bookmark toggle reports what was just written.
+                ->get(fn (Post $post, Context $context) => BookmarkStateBuffer::defer($post, $context))
                 // Left writable for guests so that an unauthenticated write is rejected by
                 // `assertRegistered()` below with a 401, rather than being silently dropped
                 // as a non-writable field.
@@ -119,23 +107,8 @@ return [
                     } else {
                         $post->bookmarks()->detach($actor->id);
                     }
-
-                    // The relation was eager-loaded (or absent) before this write, so it is
-                    // refreshed to keep the serialized `bookmarked` value in step with what
-                    // was just persisted.
-                    $post->setRelation(
-                        'bookmarkState',
-                        $value ? $post->bookmarkState()->where('user_id', $actor->id)->first() : null
-                    );
                 }),
-        ])
-        // Every endpoint that serializes posts needs the actor-scoped bookmark state
-        // eager-loaded, otherwise `bookmarked` above would fall back to `false`.
-        ->endpoint(['index', 'show', 'create', 'update'], function (Endpoint\Endpoint $endpoint): Endpoint\Endpoint {
-            return $endpoint
-                ->eagerLoad('bookmarkState')
-                ->eagerLoadWhere('bookmarkState', new ScopeBookmarkState());
-        }),
+        ]),
 
     // Defaults are registered so every setting has a usable value in the forum payload
     // before an admin has ever opened the extension page.

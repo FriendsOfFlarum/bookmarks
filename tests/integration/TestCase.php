@@ -101,4 +101,67 @@ abstract class TestCase extends BaseTestCase
 
         return json_decode($body->getContents(), true);
     }
+
+    /**
+     * The `bookmarked` attribute of every post in a response, whether it is primary
+     * data or included, keyed by post ID and sorted by it.
+     *
+     * @return array<int, bool>
+     */
+    protected function postBookmarks(\Psr\Http\Message\ResponseInterface $response): array
+    {
+        $document = $this->json($response);
+
+        $data = $document['data'] ?? [];
+        $resources = array_merge(isset($data['type']) ? [$data] : $data, $document['included'] ?? []);
+
+        $bookmarked = [];
+
+        foreach ($resources as $resource) {
+            if ($resource['type'] === 'posts') {
+                $bookmarked[(int) $resource['id']] = $resource['attributes']['bookmarked'];
+            }
+        }
+
+        ksort($bookmarked);
+
+        return $bookmarked;
+    }
+
+    /**
+     * Send a request, and return its response along with the queries it ran.
+     *
+     * @return array{0: \Psr\Http\Message\ResponseInterface, 1: array<int, array{query: string, bindings: array<mixed>}>}
+     */
+    protected function sendLoggingQueries(\Psr\Http\Message\ServerRequestInterface $request): array
+    {
+        $database = $this->database();
+
+        $database->flushQueryLog();
+        $database->enableQueryLog();
+
+        try {
+            $response = $this->send($request);
+
+            return [$response, $database->getQueryLog()];
+        } finally {
+            $database->disableQueryLog();
+            $database->flushQueryLog();
+        }
+    }
+
+    /**
+     * How many of the given queries touch the post bookmarks table.
+     *
+     * @param array<int, array{query: string, bindings: array<mixed>}> $queries
+     */
+    protected function bookmarkQueries(array $queries): int
+    {
+        $table = preg_quote($this->database()->getTablePrefix().'post_user_bookmark', '/');
+
+        return count(array_filter(
+            $queries,
+            fn (array $query) => preg_match('/\b'.$table.'\b/', $query['query']) === 1
+        ));
+    }
 }
