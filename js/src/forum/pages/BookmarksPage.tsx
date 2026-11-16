@@ -6,12 +6,12 @@ import classList from 'flarum/common/utils/classList';
 import extractText from 'flarum/common/utils/extractText';
 import app from 'flarum/forum/app';
 import DiscussionList from 'flarum/forum/components/DiscussionList';
-import IndexPage from 'flarum/forum/components/IndexPage';
 import IndexSidebar from 'flarum/forum/components/IndexSidebar';
 import PageStructure from 'flarum/forum/components/PageStructure';
 import PostList from 'flarum/forum/components/PostList';
 import DiscussionListState from 'flarum/forum/states/DiscussionListState';
 import type Mithril from 'mithril';
+import BookmarksPageHero from '../components/BookmarksPageHero';
 import BookmarkedPostListState from '../states/BookmarkedPostListState';
 
 export type BookmarksTab = 'discussions' | 'posts';
@@ -72,13 +72,17 @@ export default class BookmarksPage extends Page {
     // `App-primaryControl` on the "Start a Discussion" button, which positions it. Building
     // that markup by hand here dropped those classes and shifted the button.
     return (
-      <PageStructure className="BookmarksPage IndexPage" hero={() => IndexPage.prototype.hero()} sidebar={() => <IndexSidebar />}>
+      <PageStructure className="BookmarksPage IndexPage" hero={() => this.hero()} sidebar={() => <IndexSidebar />}>
         <div className="IndexPage-toolbar">
           <ul className="IndexPage-toolbar-view">{listItems(this.tabItems().toArray())}</ul>
         </div>
         {this.content()}
       </PageStructure>
     );
+  }
+
+  hero(): Mithril.Children {
+    return <BookmarksPageHero />;
   }
 
   private tabItems(): ItemList<Mithril.Children> {
