@@ -15,6 +15,7 @@ export default class BookmarksPage extends Page {
     private posts;
     oninit(vnode: Mithril.Vnode<IPageAttrs, this>): void;
     view(): Mithril.Children;
+    hero(): Mithril.Children;
     private tabItems;
     private tabHref;
     /**
