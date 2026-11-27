@@ -6,6 +6,10 @@ export default class BookmarkedGambit extends BooleanGambit {
     return app.translator.trans('fof-bookmarks.lib.gambits.bookmarked.key', {}, true);
   }
 
+  canonicalKey(): string {
+    return 'bookmarked';
+  }
+
   filterKey(): string {
     return 'bookmarked';
   }
